@@ -3,7 +3,7 @@
 #ifndef SRC_WIFIMGR_H_
 #define SRC_WIFIMGR_H_
 
-#include <ESP8266WiFi.h>          //  ESP8266 Core WiFi Library (you most likely already have this in your sketch)
+#include <ESP8266WiFi.h>  //  ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
 #define AP_SSID "PenumbralCogitation"
 #define AP_PASS "objectsmean"
