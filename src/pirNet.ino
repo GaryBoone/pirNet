@@ -54,6 +54,7 @@ DisplayMgr displayMgr(NEOPIXEL_ARRAY_PIN, neopixelBrightness);
 location_t loc(1, 1, 0x123456);
 
 
+// TODO(G): used?
 // Return true if any of the first four characters of the given ESID are 0.
 bool esidIsBlank(const String& esid) {
   for (int i = 0; i < 4; ++i) {
@@ -82,13 +83,12 @@ void SetRandomSeed() {
   randomSeed(seed);
 }
 
-
-
+// timer function
 void flipBlue(void) {
   digitalWrite(LED_BLUE, !digitalRead(LED_BLUE));
 }
 
-
+// timer function
 void updatePIR(void) {
   uint8_t val = digitalRead(pirInputPin);
   if (val) {
@@ -135,11 +135,18 @@ void readUDPFloorRoomColor(int packetSize) {
   displayMgr.writeToDisplay(l.floor, l.room, l.color);
 }
 
+// timer function
+void updateOLED(void) {
+  displayMgr.updateDisplay();
+}
+
 // TODO(Gary): need this?
+// timer function
 void testUDPSend(void) {
   udpMgr.sendUDP(loc);
 }
 
+// timer function
 void receiveUDP(void) {
   int packetSize = udpMgr.parsePacket();
   if (!packetSize) {
@@ -195,8 +202,6 @@ void setup() {
 
   serverMgr.startConfigServer(configMgr, software_version, &loc);
 
-  // TODO(Gary): Move these.
-  // set UDP port for listen
   Serial.print("UDP Local port: ");
   Serial.println(udpMgr.localPort());
 

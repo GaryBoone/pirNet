@@ -1,16 +1,14 @@
 // Copyright 2016 Gary Boone
 
-#include "./displayMGR.h"
+#include "./displayMgr.h"
 
-displayMgr::DisplayMgr(int pin, int brightness) {
+DisplayMgr::DisplayMgr(int pin, int brightness) {
+  memset(_display, 0, NUM_DISPLAY_PAGES * NUM_ROOMS * sizeof(uint32_t));
+
   pinMode(pin, OUTPUT);
-  Adafruit_NeoPixel _pixels =
-      new Adafruit_NeoPixel(NUM_NEOPIXELS, pin, NEO_GRB + NEO_KHZ800);
-
-  memset(display, 0, 2 * NUM_ROOMS * sizeof(uint32_t));
-
-  _pixels.setBrightness(brightness);
-  _pixels.begin();
+  _pixels = new Adafruit_NeoPixel(NUM_NEOPIXELS, pin, NEO_GRB + NEO_KHZ800);
+  _pixels->setBrightness(brightness);
+  _pixels->begin();
 }
 
 
@@ -45,10 +43,10 @@ void DisplayMgr::setDisplay(uint8_t flr, uint8_t room, uint32_t color) {
                   ((room - 1) / 2) * 2;  // floor/room are 1-based.
   // uint8_t pixel = (flr - 1) * 2 + (room - 1) * 16;  // floor/room are
   // 1-based.
-  pixels.setPixelColor(pixel, color);
-  pixels.setPixelColor(pixel + 1, color);
-  pixels.setPixelColor(pixel + 8, color);
-  pixels.setPixelColor(pixel + 9, color);
+  _pixels->setPixelColor(pixel, color);
+  _pixels->setPixelColor(pixel + 1, color);
+  _pixels->setPixelColor(pixel + 8, color);
+  _pixels->setPixelColor(pixel + 9, color);
   // pixels.show();
 }
 
@@ -56,15 +54,20 @@ void DisplayMgr::writeToDisplay(uint8_t flr, uint8_t room, uint32_t color) {
   if (flr < 1 || flr > 2 || room < 1 || room > 4) {
     return;
   }
-  display[writeDisplay][(flr - 1) * 4 + (room - 1)] = color;
+  _display[_writeDisplay][(flr - 1) * 4 + (room - 1)] = color;
 }
 
-void DisplayMgr::updateOLED(void) {
-  writeDisplay = !writeDisplay;
+void DisplayMgr::updateDisplay(void) {
+  switchBuffers();
+  fade();
+  update();
+  show();
+}
 
-  // Fade all pixels.
+// Fade all pixels one step.
+void DisplayMgr::fade(void) {
   for (int i = 0; i < NUM_NEOPIXELS; i++) {
-    uint32_t color = pixels.getPixelColor(i);
+    uint32_t color = _pixels->getPixelColor(i);
     uint8_t r = (color >> 16) & 0xFF;
     uint8_t g = (color >> 8) & 0xFF;
     uint8_t b = color & 0xFF;
@@ -72,21 +75,28 @@ void DisplayMgr::updateOLED(void) {
     r = r > 0 ? r - 1 : 0;
     g = g > 0 ? g - 1 : 0;
     b = b > 0 ? b - 1 : 0;
-    color = pixels.Color(r, g, b);
-    pixels.setPixelColor(i, color);
+    color = _pixels->Color(r, g, b);
+    _pixels->setPixelColor(i, color);
   }
+}
 
-  // Write the display state values to the OLED board.
-  uint8_t readDisplay = !writeDisplay;
-  for (int i = 0; i < 8; ++i)  {
-    uint32_t color = display[readDisplay][i];
-    if (color != 0) {  // Don't write zeros, which will erase fading non-zero colors.
+// Write the display state values to the OLED board.
+void DisplayMgr::update(void) {
+  uint8_t readDisplay = !_writeDisplay;
+  for (int i = 0; i < 8; ++i) {
+    uint32_t color = _display[readDisplay][i];
+    if (color !=
+        0) {  // Don't write zeros, which will erase fading non-zero colors.
       setDisplay((i / 4) + 1, (i % 4) + 1, color);
       Serial.printf("- display color for pixel %d = %08x\r\n", i, color);
     }
   }
-  pixels.show();
+}
+
+void DisplayMgr::show(void) {
+  _pixels->show();
 
   // Clear the read display.
-  memset(display[readDisplay], 0, NUM_ROOMS * sizeof(uint32_t));
+  uint8_t readDisplay = !_writeDisplay;
+  memset(_display[readDisplay], 0, NUM_ROOMS * sizeof(uint32_t));
 }
