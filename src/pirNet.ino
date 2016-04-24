@@ -4,11 +4,11 @@
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>       // 1 Must come before ESP8266WebServer.h
 #include <ESP8266mDNS.h>
-#include <Ticker.h>
 #include "./buildVersion.h"
 #include "./configMgr.h"
 #include "./location.h"
 #include "./otaUpdates.h"
+#include "./timerMgr.h"
 #include "./serverMgr.h"
 #include "./wifiMgr.h"
 #include "./udpMgr.h"
@@ -27,7 +27,7 @@ Adafruit_NeoPixel pixels =
 
 const String software_version = buildVersionString(__TIMESTAMP__);
 
-
+// TODO(G): Move or remove these.
 IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
@@ -38,25 +38,17 @@ const int LED_RED = LED_BUILTIN;
 uint32_t display[2][NUM_ROOMS];
 uint8_t writeDisplay = 0;
 
-Ticker blueTicker;
 const int flipBlueInterval = 200;  // ms
-
-Ticker oledTicker;
 const int updateOLEDInterval = 100;  // ms
-
-Ticker pirTicker;
 const int updatePIRInterval = 1000;  // ms
-
-Ticker receiveUDPTicker;
 const int receiveUDPInterval = 100;  // ms
-
-Ticker testUDPSendTicker;
 const int testUDPSendInterval = 2000;  // ms
 
 UdpMgr udpMgr(ipBroadCast, udplocalPort);
 WiFiMgr wiFiMgr;
 ConfigMgr configMgr;
 ServerMgr serverMgr;
+TimerMgr timerMgr;
 
 location_t loc(1, 1, 0x123456);
 
@@ -237,19 +229,11 @@ void receiveUDP(void) {
 }
 
 void enableTimers(void) {
-  oledTicker.attach_ms(updateOLEDInterval, updateOLED);
-  pirTicker.attach_ms(updatePIRInterval, updatePIR);
-  blueTicker.attach_ms(flipBlueInterval, flipBlue);
-  receiveUDPTicker.attach_ms(receiveUDPInterval, receiveUDP);
-  testUDPSendTicker.attach_ms(testUDPSendInterval, testUDPSend);
-}
-
-void disableTimers(void) {
-  oledTicker.detach();
-  pirTicker.detach();
-  blueTicker.detach();
-  receiveUDPTicker.detach();
-  testUDPSendTicker.detach();
+  timerMgr.add(updateOLEDInterval, updateOLED);
+  timerMgr.add(updatePIRInterval, updatePIR);
+  timerMgr.add(flipBlueInterval, flipBlue);
+  timerMgr.add(receiveUDPInterval, receiveUDP);
+  timerMgr.add(testUDPSendInterval, testUDPSend);
 }
 
 void setup() {
