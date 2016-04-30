@@ -25,7 +25,6 @@ const String software_version = buildVersionString(__TIMESTAMP__);
 // TODO(G): Move or remove these.
 IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
 
 const int LED_BLUE = 2;
 const int LED_RED = LED_BUILTIN;
@@ -89,38 +88,7 @@ void updatePIR(void) {
   }
 }
 
-void reportUDPPacket(int packetSize) {
-  Serial.printf("< Received %d bytes", packetSize);
-  IPAddress r = udpMgr.remoteIP();
-  Serial.printf(" from %d.%d.%d.%d", r[0], r[1], r[2], r[3]);
-  Serial.printf(", port %d\n\r", udpMgr.remotePort());
-}
-
-void readUDPOther(int packetSize) {
-  if (!packetSize) {
-    return;
-  }
-  if (packetSize == 1) {
-    uint8_t value = udpMgr.read();
-    Serial.print("< 1 Contents: ");
-    Serial.println(value);
-  } else {
-    // read the packet into packetBufffer
-    udpMgr.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
-    Serial.print("< [other] Contents: ");
-    Serial.printf("%d", packetBuffer[0]);
-    for (int i = 1; i < packetSize; ++i) {
-      Serial.printf(", %d", packetBuffer[i]);
-    }
-    Serial.println("");
-  }
-}
-
-void readUDPFloorRoomColor(int packetSize) {
-  if (packetSize != 6) {
-    return;
-  }
-
+void readUDPFloorRoomColor(void) {
   location_t l;
   udpMgr.read(reinterpret_cast<byte*>(&l), sizeof(location_t));
   Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor, l.room, l.color);
@@ -132,32 +100,29 @@ void updateOLED(void) {
   displayMgr.updateDisplay();
 }
 
-// TODO(Gary): need this?
+// timer function
+void receiveNetworkSensors(void) {
+  udpMgr.receiveUDP();
+}
+
+// For testing, send this sensors location periodically, independent of PIR activity.
+// TODO(Gary): remove after testing.
 // timer function
 void testUDPSend(void) {
   udpMgr.sendUDP(loc);
 }
 
-// timer function
-void receiveUDP(void) {
-  int packetSize = udpMgr.parsePacket();
-  if (!packetSize) {
-    return;
-  }
-  reportUDPPacket(packetSize);
-  if (packetSize == 6) {
-    readUDPFloorRoomColor(packetSize);
-    digitalWrite(LED_RED, !digitalRead(LED_RED));
-  } else {
-    readUDPOther(packetSize);
-  }
+
+void handlePackets(void) {
+  readUDPFloorRoomColor();
+  digitalWrite(LED_RED, !digitalRead(LED_RED));
 }
 
 void enableTimers(void) {
   timerMgr.add(updateOLEDInterval, updateOLED);
   timerMgr.add(updatePIRInterval, updatePIR);
   timerMgr.add(flipBlueInterval, flipBlue);
-  timerMgr.add(receiveUDPInterval, receiveUDP);
+  timerMgr.add(receiveUDPInterval, receiveNetworkSensors);
   timerMgr.add(testUDPSendInterval, testUDPSend);
 }
 
@@ -182,6 +147,7 @@ void setup() {
   wiFiMgr.joinNetwork();
   enableTimers();
   enableOTAUpdates();
+  udpMgr.attach(6, handlePackets);
 
   configMgr.readLocation(&loc);
 

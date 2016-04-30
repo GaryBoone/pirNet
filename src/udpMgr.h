@@ -6,9 +6,18 @@
 #include <WiFiUdp.h>
 #include "./location.h"
 
+
 class UdpMgr {
  public:
+  typedef void (*callback_t)(void);
+
   UdpMgr(const IPAddress broadcastIP, const int localPort);
+  void attach(int size, callback_t callback);
+  void detach(void);
+  void reportUDPPacket(int packetSize);
+  void readUDPOther(int packetSize);
+  void receiveUDP(void);
+
   void sendUDP(const location_t& loc);
   int localPort(void) { return _udp.localPort(); }
   int remotePort(void) { return _udp.remotePort(); }
@@ -23,6 +32,9 @@ class UdpMgr {
   WiFiUDP _udp;
   int _ipBroadcast;
   int _udpLocalPort;
+  int _callbackOnSize;
+  callback_t _callback;
+  char _packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
 };
 
 #endif  // SRC_UDPMGR_H_
