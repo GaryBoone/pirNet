@@ -2,7 +2,6 @@
 
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>       // 1 Must come before ESP8266WebServer.h
-// #include <ESP8266mDNS.h>
 #include "./buildVersion.h"
 #include "./configMgr.h"
 #include "./displayMgr.h"

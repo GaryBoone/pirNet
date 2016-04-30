@@ -1,6 +1,7 @@
 // Copyright 2016 Gary Boone
 
 #include <ArduinoOTA.h>
+#include <ESP8266mDNS.h>
 #include "./otaUpdates.h"
 
 String errorStringForOTA(ota_error_t error) {
