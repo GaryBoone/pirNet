@@ -3,12 +3,12 @@
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>       // 1 Must come before ESP8266WebServer.h
 #include <ESP8266mDNS.h>
-#include <Ticker.h>
 #include "./buildVersion.h"
 #include "./configMgr.h"
 #include "./displayMgr.h"
 #include "./location.h"
 #include "./otaUpdates.h"
+#include "./timerMgr.h"
 #include "./serverMgr.h"
 #include "./wifiMgr.h"
 #include "./udpMgr.h"
@@ -22,7 +22,7 @@ const int neopixelBrightness = 50;
 
 const String software_version = buildVersionString(__TIMESTAMP__);
 
-
+// TODO(G): Move or remove these.
 IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
@@ -30,25 +30,17 @@ char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
 const int LED_BLUE = 2;
 const int LED_RED = LED_BUILTIN;
 
-Ticker blueTicker;
 const int flipBlueInterval = 200;  // ms
-
-Ticker oledTicker;
 const int updateOLEDInterval = 100;  // ms
-
-Ticker pirTicker;
 const int updatePIRInterval = 1000;  // ms
-
-Ticker receiveUDPTicker;
 const int receiveUDPInterval = 100;  // ms
-
-Ticker testUDPSendTicker;
 const int testUDPSendInterval = 2000;  // ms
 
 UdpMgr udpMgr(ipBroadCast, udplocalPort);
 WiFiMgr wiFiMgr;
 ConfigMgr configMgr;
 ServerMgr serverMgr;
+TimerMgr timerMgr;
 DisplayMgr displayMgr(NEOPIXEL_ARRAY_PIN, neopixelBrightness);
 
 location_t loc(1, 1, 0x123456);
@@ -162,48 +154,38 @@ void receiveUDP(void) {
 }
 
 void enableTimers(void) {
-  oledTicker.attach_ms(updateOLEDInterval, updateOLED);
-  pirTicker.attach_ms(updatePIRInterval, updatePIR);
-  blueTicker.attach_ms(flipBlueInterval, flipBlue);
-  receiveUDPTicker.attach_ms(receiveUDPInterval, receiveUDP);
-  testUDPSendTicker.attach_ms(testUDPSendInterval, testUDPSend);
+  timerMgr.add(updateOLEDInterval, updateOLED);
+  timerMgr.add(updatePIRInterval, updatePIR);
+  timerMgr.add(flipBlueInterval, flipBlue);
+  timerMgr.add(receiveUDPInterval, receiveUDP);
+  timerMgr.add(testUDPSendInterval, testUDPSend);
 }
 
-void disableTimers(void) {
-  oledTicker.detach();
-  pirTicker.detach();
-  blueTicker.detach();
-  receiveUDPTicker.detach();
-  testUDPSendTicker.detach();
-}
-
-void setup() {
-  SetRandomSeed();
-  Serial.begin(115200);
+void reportStatus(void) {
   Serial.printf("Software version: %s\r\n", software_version.c_str());
-
-  wiFiMgr.joinNetwork();
   Serial.print("Local IP: ");
   Serial.println(wiFiMgr.ipAddress());
   Serial.print("Status: ");
   Serial.println(wiFiMgr.statusString());
   Serial.print("Mode: ");
   Serial.println(wiFiMgr.modeString());
+  Serial.printf("ESP8266 Location: floor=%u, room=%u, color=0x%08x\r\n",
+                loc.floor, loc.room, loc.color);
+  Serial.print("UDP Local port: ");
+  Serial.println(udpMgr.localPort());
+}
 
+void setup() {
+  SetRandomSeed();
+  Serial.begin(115200);
+
+  wiFiMgr.joinNetwork();
   enableTimers();
   enableOTAUpdates();
 
-  bool readLoc = configMgr.readLocation(&loc);
-  if (!readLoc) {
-    Serial.println("Failed to read location. Using defaults.");
-  }
-  Serial.printf("ESP8266 Location: floor=%u, room=%u, color=0x%08x\r\n",
-                loc.floor, loc.room, loc.color);
+  configMgr.readLocation(&loc);
 
   serverMgr.startConfigServer(configMgr, software_version, &loc);
-
-  Serial.print("UDP Local port: ");
-  Serial.println(udpMgr.localPort());
 
   // LEDs
   pinMode(LED_BLUE, OUTPUT);
@@ -213,6 +195,8 @@ void setup() {
 
   // PIR sensor
   pinMode(pirInputPin, INPUT);  // declare sensor as input
+
+  reportStatus();
 }
 
 void loop() {
