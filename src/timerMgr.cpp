@@ -20,4 +20,3 @@ void TimerMgr::disableAll(void) {
     _timers[i]->detach();
   }
 }
-

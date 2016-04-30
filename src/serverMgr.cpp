@@ -54,19 +54,19 @@ void ServerMgr::startConfigServer(const ConfigMgr& configMgr,
       case NO_CHANGE:
         Serial.println("/setlocation: no change in location.");
         content += "There was no change in the setup.";
-      break;
+        break;
       case SAVED:
         char str[150];
         snprintf(str, sizeof(str),
-                 "Saved the new setup: floor=%u, room=%u, color=0x%08x", loc->floor,
-                 loc->room, loc->color);
+                 "Saved the new setup: floor=%u, room=%u, color=0x%08x",
+                 loc->floor, loc->room, loc->color);
         Serial.printf("/setlocation: %s\r\n", str);
         content += str;
-      break;
+        break;
       case SAVE_FAILED:
         Serial.println("/setlocation: save failed.");
         content += "There was a problem saving the new setup.";
-      break;
+        break;
     }
     content += "<p></HTML>";
     _server->send(200, "text/html", content);

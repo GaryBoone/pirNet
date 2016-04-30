@@ -8,4 +8,3 @@
 const String buildVersionString(const char* str);
 
 #endif  // SRC_BUILDVERSION_H_
-

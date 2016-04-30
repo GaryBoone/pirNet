@@ -11,7 +11,6 @@ DisplayMgr::DisplayMgr(int pin, int brightness) {
   _pixels->begin();
 }
 
-
 // 0>(0,0)>0                 // 0>(0,0)>0
 // 1>(0,1)>4                 // 1>(0,1)>16
 // 2>(1,0)>1                 // 2>(1,0)>2

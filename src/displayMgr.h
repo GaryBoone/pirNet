@@ -6,7 +6,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define NUM_NEOPIXELS 32
-#define NUM_DISPLAY_PAGES 2  // active, background so updates are no on active display
+#define NUM_DISPLAY_PAGES 2  // updates are on non-active display
 #define NUM_ROOMS 8
 
 class DisplayMgr {
@@ -16,7 +16,6 @@ class DisplayMgr {
   void setDisplay(uint8_t flr, uint8_t room, uint32_t color);
   void writeToDisplay(uint8_t flr, uint8_t room, uint32_t color);
   void updateDisplay(void);
-
 
  private:
   Adafruit_NeoPixel* _pixels;

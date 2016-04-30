@@ -1,7 +1,7 @@
 // Copyright 2016 Gary Boone
 
-#include <ArduinoJson.h>  // https://github.com/bblanchon/ArduinoJson
 #include "./configMgr.h"
+#include <ArduinoJson.h>  // https://github.com/bblanchon/ArduinoJson
 
 template <class T>
 int ConfigMgr::read(File f, T* value) const {

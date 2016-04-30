@@ -6,7 +6,7 @@
 #include <FS.h>
 #include "./location.h"
 
-enum save_result_t {NO_CHANGE, SAVED, SAVE_FAILED};
+enum save_result_t { NO_CHANGE, SAVED, SAVE_FAILED };
 
 class ConfigMgr {
  public:
@@ -16,7 +16,8 @@ class ConfigMgr {
   int write(File f, const T& value) const;
   bool readLocation(location_t* loc) const;
   bool writeLocation(location_t loc) const;
-  save_result_t writeLocationIfNew(const location_t& newLoc, location_t* loc) const;
+  save_result_t writeLocationIfNew(const location_t& newLoc,
+                                   location_t* loc) const;
   void resetConfig(void) const;
 
  private:

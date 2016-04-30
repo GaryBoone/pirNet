@@ -1,10 +1,10 @@
 // Copyright 2016 Gary Boone
 
-#include <ESP8266WiFi.h>          //  ESP8266 Core WiFi Library (you most likely already have this in your sketch)
-#include <DNSServer.h>            //  Local DNS Server used for redirecting all requests to the configuration portal
-#include <ESP8266WebServer.h>     //  Local WebServer used to serve the configuration portal
-#include <WiFiManager.h>          //  https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 #include "./wifiMgr.h"
+#include <DNSServer.h>  //  Local DNS Server used for redirecting all requests to the configuration portal
+#include <ESP8266WebServer.h>  //  Local WebServer used to serve the configuration portal
+#include <ESP8266WiFi.h>  //  ESP8266 Core WiFi Library (you most likely already have this in your sketch)
+#include <WiFiManager.h>  //  https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
 const String WiFiMgr::_wifi_status[] = {
     "Idle",           "No SSID available", "Scan completed", "Connected",

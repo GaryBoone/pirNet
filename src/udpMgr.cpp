@@ -1,7 +1,7 @@
 // Copyright 2016 Gary Boone
 
-#include <WiFiUdp.h>
 #include "./udpMgr.h"
+#include <WiFiUdp.h>
 
 UdpMgr::UdpMgr(const IPAddress broadcastIP, const int localPort) {
   _ipBroadcast = broadcastIP;
@@ -54,7 +54,6 @@ void UdpMgr::receiveUDP(void) {
   }
   _callback();
 }
-
 
 void UdpMgr::sendUDP(const location_t& loc) {
   _udp.beginPacket(_ipBroadcast, _udpLocalPort);

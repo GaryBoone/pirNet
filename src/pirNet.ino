@@ -1,6 +1,5 @@
 // Copyright 2016 Gary Boone
 
-#include <ArduinoOTA.h>
 #include "./buildVersion.h"
 #include "./configMgr.h"
 #include "./displayMgr.h"

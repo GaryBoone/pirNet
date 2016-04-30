@@ -1,8 +1,7 @@
 // Copyright 2016 Gary Boone
 
-#include <ArduinoOTA.h>
-#include <ESP8266mDNS.h>
 #include "./otaUpdates.h"
+#include <ESP8266mDNS.h>
 
 String errorStringForOTA(ota_error_t error) {
   static const String ota_error[] = {"Authentication Failed", "Begin Failed",
