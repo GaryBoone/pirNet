@@ -1,12 +1,12 @@
 // Copyright 2016 Gary Boone
 
-#include <Adafruit_NeoPixel.h>
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>       // 1 Must come before ESP8266WebServer.h
 #include <ESP8266mDNS.h>
 #include <Ticker.h>
 #include "./buildVersion.h"
 #include "./configMgr.h"
+#include "./displayMgr.h"
 #include "./location.h"
 #include "./otaUpdates.h"
 #include "./serverMgr.h"
@@ -16,14 +16,9 @@
 // Quotes and parentheses must be balanced.
 #define MULTILINE_STRING(...) #__VA_ARGS__
 
-#define NEOPIXEL_ARRAY_PIN 15
 const int pirInputPin = 12;
-#define NUM_NEOPIXELS 32
-#define NUM_ROOMS 8
+#define NEOPIXEL_ARRAY_PIN 15
 const int neopixelBrightness = 50;
-
-Adafruit_NeoPixel pixels =
-    Adafruit_NeoPixel(NUM_NEOPIXELS, NEOPIXEL_ARRAY_PIN, NEO_GRB + NEO_KHZ800);
 
 const String software_version = buildVersionString(__TIMESTAMP__);
 
@@ -34,9 +29,6 @@ char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
 
 const int LED_BLUE = 2;
 const int LED_RED = LED_BUILTIN;
-
-uint32_t display[2][NUM_ROOMS];
-uint8_t writeDisplay = 0;
 
 Ticker blueTicker;
 const int flipBlueInterval = 200;  // ms
@@ -57,10 +49,12 @@ UdpMgr udpMgr(ipBroadCast, udplocalPort);
 WiFiMgr wiFiMgr;
 ConfigMgr configMgr;
 ServerMgr serverMgr;
+DisplayMgr displayMgr(NEOPIXEL_ARRAY_PIN, neopixelBrightness);
 
 location_t loc(1, 1, 0x123456);
 
 
+// TODO(G): used?
 // Return true if any of the first four characters of the given ESID are 0.
 bool esidIsBlank(const String& esid) {
   for (int i = 0; i < 4; ++i) {
@@ -89,92 +83,16 @@ void SetRandomSeed() {
   randomSeed(seed);
 }
 
-
-// 0>(0,0)>0                 // 0>(0,0)>0
-// 1>(0,1)>4                 // 1>(0,1)>16
-// 2>(1,0)>1                 // 2>(1,0)>2
-// 3>(1,1)>5                 // 3>(1,1)>18
-// 4>(2,0)>2                 // 4>(2,0)>4
-// 5>(2,1)>6                 // 5>(2,1)>20
-// 6>(3,0)>3                 // 6>(3,0)>6
-// 7>(3,1)>7                 // 7>(3,1)>22
-// = x + y*4                 // = 2*x + y*16
-
-// (f,r)
-// 0>(0,0)>0                 // 0>(0,0)>0
-// 1>(0,1)>4                 // 1>(0,1)>16
-// 2>(0,2)>1                 // 2>(0,2)>2
-// 3>(0,3)>5                 // 3>(0,3)>18
-// 4>(1,0)>2                 // 4>(1,0)>4
-// 5>(1,1)>6                 // 5>(1,1)>20
-// 6>(1,2)>3                 // 6>(1,2)>6
-// 7>(1,3)>7                 // 7>(1,3)>22
-// = x*2 + (y%2)*4+y/2       // = x*4 + (y%2)*16+(y/2)*2
-
-void setDisplay(uint8_t flr, uint8_t room, uint32_t color) {
-  // display buffer:
-  // uint8_t loc = (flr - 1) * 2  + ((room - 1) % 2) * 4 + (room - 1) / 2;  //
-  // floor/room are 1-based.
-  // display[loc] = pixelValue;
-
-  uint8_t pixel = (flr - 1) * 4 + ((room - 1) % 2) * 16 +
-                  ((room - 1) / 2) * 2;  // floor/room are 1-based.
-  // uint8_t pixel = (flr - 1) * 2 + (room - 1) * 16;  // floor/room are
-  // 1-based.
-  pixels.setPixelColor(pixel, color);
-  pixels.setPixelColor(pixel + 1, color);
-  pixels.setPixelColor(pixel + 8, color);
-  pixels.setPixelColor(pixel + 9, color);
-  // pixels.show();
-}
-
-void writeToDisplay(uint8_t flr, uint8_t room, uint32_t color) {
-  if (flr < 1 || flr > 2 || room < 1 || room > 4) {
-    return;
-  }
-  display[writeDisplay][(flr - 1) * 4 + (room - 1)] = color;
-}
-
+// timer function
 void flipBlue(void) {
   digitalWrite(LED_BLUE, !digitalRead(LED_BLUE));
 }
 
-void updateOLED(void) {
-  writeDisplay = !writeDisplay;
-
-  // Fade all pixels.
-  for (int i = 0; i < NUM_NEOPIXELS; i++) {
-    uint32_t color = pixels.getPixelColor(i);
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
-
-    r = r > 0 ? r - 1 : 0;
-    g = g > 0 ? g - 1 : 0;
-    b = b > 0 ? b - 1 : 0;
-    color = pixels.Color(r, g, b);
-    pixels.setPixelColor(i, color);
-  }
-
-  // Write the display state values to the OLED board.
-  uint8_t readDisplay = !writeDisplay;
-  for (int i = 0; i < 8; ++i)  {
-    uint32_t color = display[readDisplay][i];
-    if (color != 0) {  // Don't write zeros, which will erase fading non-zero colors.
-      setDisplay((i / 4) + 1, (i % 4) + 1, color);
-      Serial.printf("- display color for pixel %d = %08x\r\n", i, color);
-    }
-  }
-  pixels.show();
-
-  // Clear the read display.
-  memset(display[readDisplay], 0, NUM_ROOMS * sizeof(uint32_t));
-}
-
+// timer function
 void updatePIR(void) {
   uint8_t val = digitalRead(pirInputPin);
   if (val) {
-    writeToDisplay(loc.floor, loc.room, loc.color);
+    displayMgr.writeToDisplay(loc.floor, loc.room, loc.color);
     udpMgr.sendUDP(loc);
   }
 }
@@ -214,14 +132,21 @@ void readUDPFloorRoomColor(int packetSize) {
   location_t l;
   udpMgr.read(reinterpret_cast<byte*>(&l), sizeof(location_t));
   Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor, l.room, l.color);
-  writeToDisplay(l.floor, l.room, l.color);
+  displayMgr.writeToDisplay(l.floor, l.room, l.color);
+}
+
+// timer function
+void updateOLED(void) {
+  displayMgr.updateDisplay();
 }
 
 // TODO(Gary): need this?
+// timer function
 void testUDPSend(void) {
   udpMgr.sendUDP(loc);
 }
 
+// timer function
 void receiveUDP(void) {
   int packetSize = udpMgr.parsePacket();
   if (!packetSize) {
@@ -277,8 +202,6 @@ void setup() {
 
   serverMgr.startConfigServer(configMgr, software_version, &loc);
 
-  // TODO(Gary): Move these.
-  // set UDP port for listen
   Serial.print("UDP Local port: ");
   Serial.println(udpMgr.localPort());
 
@@ -287,13 +210,6 @@ void setup() {
   pinMode(LED_RED, OUTPUT);
   digitalWrite(LED_BLUE, 0);
   digitalWrite(LED_RED, 0);
-
-  // Neopixel array
-  pinMode(NEOPIXEL_ARRAY_PIN, OUTPUT);
-  pixels.setBrightness(neopixelBrightness);
-  pixels.begin();
-
-  memset(display, 0, 2 * NUM_ROOMS * sizeof(uint32_t));
 
   // PIR sensor
   pinMode(pirInputPin, INPUT);  // declare sensor as input
