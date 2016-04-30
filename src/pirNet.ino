@@ -135,10 +135,10 @@ void setup() {
   enableTimers();
 
   // udpMgr.attach(6, handlePackets);  // TODO(Gary): magic number. Try sizeof(location_t)
-  udpMgr.attach(6, []() {
+  udpMgr.attach(6, []() {  // TODO(Gary): magic number 6. Try sizeof(location_t)
     readUDPFloorRoomColor();
     digitalWrite(ledRed, !digitalRead(ledRed));
-  });  // TODO(Gary): magic number. Try sizeof(location_t)
+  });
 
   configMgr.readLocation(&loc);
 
