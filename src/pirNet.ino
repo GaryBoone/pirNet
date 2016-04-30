@@ -6,10 +6,10 @@
 #include "./displayMgr.h"
 #include "./location.h"
 #include "./otaUpdates.h"
-#include "./timerMgr.h"
 #include "./serverMgr.h"
-#include "./wifiMgr.h"
+#include "./timerMgr.h"
 #include "./udpMgr.h"
+#include "./wifiMgr.h"
 
 // Pins
 const int pirInputPin = 12;
@@ -23,10 +23,10 @@ IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
 
 // Timers
-const int flipBlueInterval = 200;  // ms
-const int updateOLEDInterval = 100;  // ms
-const int updatePIRInterval = 1000;  // ms
-const int receiveUDPInterval = 100;  // ms
+const int flipBlueInterval = 200;      // ms
+const int updateOLEDInterval = 100;    // ms
+const int updatePIRInterval = 1000;    // ms
+const int receiveUDPInterval = 100;    // ms
 const int testUDPSendInterval = 2000;  // ms
 
 // LEDs
@@ -47,7 +47,6 @@ DisplayMgr displayMgr(neoPixelArrayPin, neoPixelBrightness);
 // Location global
 location_t loc(1, 1, 0x123456);
 
-
 // Random works best with a seed that can use 31 bits.
 // analogRead on a unconnected pin tends toward less than four bits.
 void SetRandomSeed() {
@@ -61,9 +60,7 @@ void SetRandomSeed() {
 }
 
 // timer function
-void flipBlue(void) {
-  digitalWrite(ledBlue, !digitalRead(ledBlue));
-}
+void flipBlue(void) { digitalWrite(ledBlue, !digitalRead(ledBlue)); }
 
 // timer function
 void updatePIR(void) {
@@ -76,29 +73,26 @@ void updatePIR(void) {
 
 void readUDPFloorRoomColor(void) {
   location_t l;
-  // TODO(Gary): Check that size here is right, given that this is called on size = 6
+  // TODO(Gary): Check that size here is right, given that this is called on
+  // size = 6
   // Should the size that triggers this callback be sizeof(location_t)?
   udpMgr.read(reinterpret_cast<byte*>(&l), sizeof(location_t));
-  Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor, l.room, l.color);
+  Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor,
+                l.room, l.color);
   displayMgr.writeToDisplay(l.floor, l.room, l.color);
 }
 
 // timer function
-void updateOLED(void) {
-  displayMgr.updateDisplay();
-}
+void updateOLED(void) { displayMgr.updateDisplay(); }
 
 // timer function
-void receiveNetworkSensors(void) {
-  udpMgr.receiveUDP();
-}
+void receiveNetworkSensors(void) { udpMgr.receiveUDP(); }
 
-// For testing, send this sensors location periodically, independent of PIR activity.
+// For testing, send this sensors location periodically, independent of PIR
+// activity.
 // TODO(Gary): remove after testing.
 // timer function
-void testUDPSend(void) {
-  udpMgr.sendUDP(loc);
-}
+void testUDPSend(void) { udpMgr.sendUDP(loc); }
 
 void enableTimers(void) {
   timerMgr.add(updateOLEDInterval, updateOLED);
@@ -131,7 +125,8 @@ void setup() {
 
   enableTimers();
 
-  // udpMgr.attach(6, handlePackets);  // TODO(Gary): magic number. Try sizeof(location_t)
+  // udpMgr.attach(6, handlePackets);  // TODO(Gary): magic number. Try
+  // sizeof(location_t)
   udpMgr.attach(6, []() {  // TODO(Gary): magic number 6. Try sizeof(location_t)
     readUDPFloorRoomColor();
     digitalWrite(ledRed, !digitalRead(ledRed));
