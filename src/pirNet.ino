@@ -1,7 +1,6 @@
 // Copyright 2016 Gary Boone
 
 #include <ArduinoOTA.h>
-#include <ESP8266WiFi.h>       // 1 Must come before ESP8266WebServer.h
 #include "./buildVersion.h"
 #include "./configMgr.h"
 #include "./displayMgr.h"
@@ -12,21 +11,16 @@
 #include "./wifiMgr.h"
 #include "./udpMgr.h"
 
-// Quotes and parentheses must be balanced.
-#define MULTILINE_STRING(...) #__VA_ARGS__
-
 // Pins
 const int pirInputPin = 12;
 const int neoPixelArrayPin = 15;
+
+// Display
 const int neoPixelBrightness = 50;
 
 // UDP
 IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
-
-// LEDs
-const int ledBlue = 2;
-const int ledRed = LED_BUILTIN;
 
 // Timers
 const int flipBlueInterval = 200;  // ms
@@ -34,6 +28,10 @@ const int updateOLEDInterval = 100;  // ms
 const int updatePIRInterval = 1000;  // ms
 const int receiveUDPInterval = 100;  // ms
 const int testUDPSendInterval = 2000;  // ms
+
+// LEDs
+const int ledBlue = 2;
+const int ledRed = LED_BUILTIN;
 
 // Build version
 const String software_version = buildVersionString(__TIMESTAMP__);
@@ -46,7 +44,7 @@ UdpMgr udpMgr(ipBroadCast, udplocalPort);
 TimerMgr timerMgr;
 DisplayMgr displayMgr(neoPixelArrayPin, neoPixelBrightness);
 
-// Location
+// Location global
 location_t loc(1, 1, 0x123456);
 
 
