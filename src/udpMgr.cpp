@@ -32,7 +32,7 @@ void UdpMgr::readUDPOther(int packetSize) {
     uint8_t value = _udp.read();
     Serial.println(value);
   } else {
-    // read the packet into packetBufffer
+    // Read the packet into packetBufffer.
     _udp.read(_packetBuffer, UDP_TX_PACKET_MAX_SIZE);
     Serial.printf("%d", _packetBuffer[0]);
     for (int i = 1; i < packetSize; ++i) {

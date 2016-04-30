@@ -25,8 +25,10 @@ class UdpMgr {
   int parsePacket(void) { return _udp.parsePacket(); }
   int read(location_t *loc) { return _udp.read(reinterpret_cast<byte*>(loc), sizeof(location_t)); }
   int read(unsigned char* buffer, size_t len) { return _udp.read(buffer, len); }
-  int read(char* buffer, size_t len) { return _udp.read(buffer, len); }
-  int read(void) { return _udp.read(); }
+  
+  // TODO(Gary): Remove these.
+  // int read(char* buffer, size_t len) { return _udp.read(buffer, len); }
+  // int read(void) { return _udp.read(); }
 
  private:
   WiFiUDP _udp;

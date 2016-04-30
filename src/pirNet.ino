@@ -16,67 +16,56 @@
 // Quotes and parentheses must be balanced.
 #define MULTILINE_STRING(...) #__VA_ARGS__
 
+// Pins
 const int pirInputPin = 12;
-#define NEOPIXEL_ARRAY_PIN 15
-const int neopixelBrightness = 50;
+const int neoPixelArrayPin = 15;
+const int neoPixelBrightness = 50;
 
-const String software_version = buildVersionString(__TIMESTAMP__);
-
-// TODO(G): Move or remove these.
+// UDP
 IPAddress ipBroadCast(192, 168, 1, 255);
 unsigned int udplocalPort = 2390;  // TODO(Gary): change to 6484
 
-const int LED_BLUE = 2;
-const int LED_RED = LED_BUILTIN;
+// LEDs
+const int ledBlue = 2;
+const int ledRed = LED_BUILTIN;
 
+// Timers
 const int flipBlueInterval = 200;  // ms
 const int updateOLEDInterval = 100;  // ms
 const int updatePIRInterval = 1000;  // ms
 const int receiveUDPInterval = 100;  // ms
 const int testUDPSendInterval = 2000;  // ms
 
-UdpMgr udpMgr(ipBroadCast, udplocalPort);
-WiFiMgr wiFiMgr;
-ConfigMgr configMgr;
-ServerMgr serverMgr;
-TimerMgr timerMgr;
-DisplayMgr displayMgr(NEOPIXEL_ARRAY_PIN, neopixelBrightness);
+// Build version
+const String software_version = buildVersionString(__TIMESTAMP__);
 
+// Managers
+ConfigMgr configMgr;
+WiFiMgr wiFiMgr;
+ServerMgr serverMgr;
+UdpMgr udpMgr(ipBroadCast, udplocalPort);
+TimerMgr timerMgr;
+DisplayMgr displayMgr(neoPixelArrayPin, neoPixelBrightness);
+
+// Location
 location_t loc(1, 1, 0x123456);
 
 
-// TODO(G): used?
-// Return true if any of the first four characters of the given ESID are 0.
-bool esidIsBlank(const String& esid) {
-  for (int i = 0; i < 4; ++i) {
-    if (esid[0] != 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
+// Random works best with a seed that can use 31 bits.
+// analogRead on a unconnected pin tends toward less than four bits.
 void SetRandomSeed() {
-  uint32_t seed;
-
-  // random works best with a seed that can use 31 bits
-  // analogRead on a unconnected pin tends toward less than four bits
-  seed = analogRead(0);
+  uint32_t seed = analogRead(0);
   delay(1);
-
   for (int shifts = 3; shifts < 31; shifts += 3) {
     seed ^= analogRead(0) << shifts;
     delay(1);
   }
-
-  // Serial.println(seed);
   randomSeed(seed);
 }
 
 // timer function
 void flipBlue(void) {
-  digitalWrite(LED_BLUE, !digitalRead(LED_BLUE));
+  digitalWrite(ledBlue, !digitalRead(ledBlue));
 }
 
 // timer function
@@ -90,6 +79,8 @@ void updatePIR(void) {
 
 void readUDPFloorRoomColor(void) {
   location_t l;
+  // TODO(Gary): Check that size here is right, given that this is called on size = 6
+  // Should the size that triggers this callback be sizeof(location_t)?
   udpMgr.read(reinterpret_cast<byte*>(&l), sizeof(location_t));
   Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor, l.room, l.color);
   displayMgr.writeToDisplay(l.floor, l.room, l.color);
@@ -110,12 +101,6 @@ void receiveNetworkSensors(void) {
 // timer function
 void testUDPSend(void) {
   udpMgr.sendUDP(loc);
-}
-
-
-void handlePackets(void) {
-  readUDPFloorRoomColor();
-  digitalWrite(LED_RED, !digitalRead(LED_RED));
 }
 
 void enableTimers(void) {
@@ -145,22 +130,28 @@ void setup() {
   Serial.begin(115200);
 
   wiFiMgr.joinNetwork();
-  enableTimers();
   enableOTAUpdates();
-  udpMgr.attach(6, handlePackets);
+
+  enableTimers();
+
+  // udpMgr.attach(6, handlePackets);  // TODO(Gary): magic number. Try sizeof(location_t)
+  udpMgr.attach(6, []() {
+    readUDPFloorRoomColor();
+    digitalWrite(ledRed, !digitalRead(ledRed));
+  });  // TODO(Gary): magic number. Try sizeof(location_t)
 
   configMgr.readLocation(&loc);
 
   serverMgr.startConfigServer(configMgr, software_version, &loc);
 
-  // LEDs
-  pinMode(LED_BLUE, OUTPUT);
-  pinMode(LED_RED, OUTPUT);
-  digitalWrite(LED_BLUE, 0);
-  digitalWrite(LED_RED, 0);
-
   // PIR sensor
   pinMode(pirInputPin, INPUT);  // declare sensor as input
+
+  // LEDs
+  pinMode(ledBlue, OUTPUT);
+  digitalWrite(ledBlue, 0);
+  pinMode(ledRed, OUTPUT);
+  digitalWrite(ledRed, 0);
 
   reportStatus();
 }
