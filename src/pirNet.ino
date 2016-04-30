@@ -236,35 +236,31 @@ void enableTimers(void) {
   timerMgr.add(testUDPSendInterval, testUDPSend);
 }
 
-void setup() {
-  SetRandomSeed();
-  Serial.begin(115200);
+void reportStatus(void) {
   Serial.printf("Software version: %s\r\n", software_version.c_str());
-
-  wiFiMgr.joinNetwork();
   Serial.print("Local IP: ");
   Serial.println(wiFiMgr.ipAddress());
   Serial.print("Status: ");
   Serial.println(wiFiMgr.statusString());
   Serial.print("Mode: ");
   Serial.println(wiFiMgr.modeString());
+  Serial.printf("ESP8266 Location: floor=%u, room=%u, color=0x%08x\r\n",
+                loc.floor, loc.room, loc.color);
+  Serial.print("UDP Local port: ");
+  Serial.println(udpMgr.localPort());
+}
 
+void setup() {
+  SetRandomSeed();
+  Serial.begin(115200);
+
+  wiFiMgr.joinNetwork();
   enableTimers();
   enableOTAUpdates();
 
-  bool readLoc = configMgr.readLocation(&loc);
-  if (!readLoc) {
-    Serial.println("Failed to read location. Using defaults.");
-  }
-  Serial.printf("ESP8266 Location: floor=%u, room=%u, color=0x%08x\r\n",
-                loc.floor, loc.room, loc.color);
+  configMgr.readLocation(&loc);
 
   serverMgr.startConfigServer(configMgr, software_version, &loc);
-
-  // TODO(Gary): Move these.
-  // set UDP port for listen
-  Serial.print("UDP Local port: ");
-  Serial.println(udpMgr.localPort());
 
   // LEDs
   pinMode(LED_BLUE, OUTPUT);
@@ -281,6 +277,8 @@ void setup() {
 
   // PIR sensor
   pinMode(pirInputPin, INPUT);  // declare sensor as input
+
+  reportStatus();
 }
 
 void loop() {
