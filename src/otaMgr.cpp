@@ -1,6 +1,6 @@
 // Copyright 2016 Gary Boone
 
-#include "./otaUpdates.h"
+#include "./otaMgr.h"
 
 String OtaMgr::_errorStringForOTA(ota_error_t error) {
   static const String ota_error[] = {"Authentication Failed", "Begin Failed",

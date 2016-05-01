@@ -4,7 +4,7 @@
 #include "./configMgr.h"
 #include "./displayMgr.h"
 #include "./location.h"
-#include "./otaUpdates.h"
+#include "./otaMgr.h"
 #include "./serverMgr.h"
 #include "./timerMgr.h"
 #include "./udpMgr.h"
@@ -137,7 +137,7 @@ void setup() {
   serverMgr.startConfigServer(configMgr, software_version, &loc);
 
   // PIR sensor
-  pinMode(pirInputPin, INPUT);  // declare sensor as input
+  pinMode(pirInputPin, INPUT);
 
   // LEDs
   pinMode(ledBlue, OUTPUT);
