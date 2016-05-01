@@ -9,7 +9,7 @@
 class TimerMgr {
  public:
   ~TimerMgr(void);
-  void add(float seconds, Ticker::callback_t callback);
+  void add(int milliseconds, Ticker::callback_t callback);
   void disableAll(void);
 
  private:

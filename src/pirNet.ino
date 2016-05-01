@@ -40,6 +40,7 @@ ConfigMgr configMgr;
 WiFiMgr wiFiMgr;
 ServerMgr serverMgr;
 UdpMgr udpMgr(ipBroadCast, udplocalPort);
+OtaMgr otaMgr;
 TimerMgr timerMgr;
 DisplayMgr displayMgr(neoPixelArrayPin, neoPixelBrightness);
 
@@ -120,7 +121,7 @@ void setup() {
   Serial.begin(115200);
 
   wiFiMgr.joinNetwork();
-  enableOTAUpdates();
+  otaMgr.enableUpdates();
 
   enableTimers();
 
@@ -148,7 +149,7 @@ void setup() {
 }
 
 void loop() {
-  ArduinoOTA.handle();
+  otaMgr.handleUpdates();
 
   serverMgr.handleRequests();
 

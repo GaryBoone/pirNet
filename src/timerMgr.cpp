@@ -9,10 +9,10 @@ TimerMgr::~TimerMgr(void) {
   }
 }
 
-void TimerMgr::add(float seconds, Ticker::callback_t callback) {
+void TimerMgr::add(int milliseconds, Ticker::callback_t callback) {
   int newIndex = _timers.size();
   _timers.push_back(new Ticker());
-  _timers[newIndex]->attach(seconds, callback);
+  _timers[newIndex]->attach(milliseconds/1000.0, callback);
 }
 
 void TimerMgr::disableAll(void) {
