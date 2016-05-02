@@ -27,10 +27,6 @@ class UdpMgr {
   }
   int read(unsigned char* buffer, size_t len) { return _udp.read(buffer, len); }
 
-  // TODO(Gary): Remove these.
-  // int read(char* buffer, size_t len) { return _udp.read(buffer, len); }
-  // int read(void) { return _udp.read(); }
-
  private:
   WiFiUDP _udp;
   int _ipBroadcast;

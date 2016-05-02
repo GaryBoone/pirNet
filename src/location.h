@@ -5,6 +5,11 @@
 
 #include <Arduino.h>
 
+// The location_t size in memory will be 8 bytes because the uint32_t will be
+// word aligned following the two bytes. Only 6 bytes will be transmitted,
+// though.
+const int locationSizeOnWire = 6;
+
 struct location_t {
   uint8_t floor = 0;
   uint8_t room = 0;
