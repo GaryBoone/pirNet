@@ -8,16 +8,17 @@
 
 class UdpMgr {
  public:
-  typedef void (*callback_t)(void);
+  typedef String (*callback_t)(void);
 
   UdpMgr(const IPAddress broadcastIP, const int localPort);
   void attach(int size, callback_t callback);
   void detach(void);
   void reportUDPPacket(int packetSize);
-  void readUDPOther(int packetSize);
-  void receiveUDP(void);
+  String readUDPOther(int packetSize);
+  String receiveUDP(void);
 
   void sendUDP(const location_t& loc);
+  void sendUDP(const String& msg);
   int localPort(void) { return _udp.localPort(); }
   int remotePort(void) { return _udp.remotePort(); }
   IPAddress remoteIP(void) { return _udp.remoteIP(); }
@@ -33,8 +34,7 @@ class UdpMgr {
   int _udpLocalPort;
   int _callbackOnSize;
   callback_t _callback;
-  char
-      _packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
+  char _packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer for incoming packet,
 };
 
 #endif  // SRC_UDPMGR_H_

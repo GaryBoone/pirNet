@@ -5,7 +5,7 @@
 ServerMgr::ServerMgr(void) { _server = new ESP8266WebServer(80); }
 ServerMgr::~ServerMgr(void) { delete _server; }
 
-void ServerMgr::startConfigServer(const ConfigMgr& configMgr,
+void ServerMgr::startConfigServer(const ConfigMgr& configMgr, UdpMgr& udpMgr,
                                   const String software_version,
                                   location_t* loc) {
   _server->on("/", [this, software_version, loc]() {
@@ -79,6 +79,13 @@ void ServerMgr::startConfigServer(const ConfigMgr& configMgr,
     String content = "<!DOCTYPE HTML>\r\n<html>";
     content += "<p>Configuration reset.</p>";
     content += "<p>Reboot device.</p></html>";
+    _server->send(200, "text/html", content);
+  });
+
+  _server->on("/pingconfigs", [this, &udpMgr]() {
+    udpMgr.sendUDP("pingconfigs");
+    String content = "<!DOCTYPE HTML>\r\n<html>";
+    content += "<p>All configs pinged.</p></html>";
     _server->send(200, "text/html", content);
   });
 

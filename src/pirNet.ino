@@ -74,7 +74,12 @@ void updatePIR(void) {
 void updateOLED(void) { displayMgr.updateDisplay(); }
 
 // timer function
-void receiveNetworkSensors(void) { udpMgr.receiveUDP(); }
+void receiveNetworkSensors(void) { String str = udpMgr.receiveUDP();
+  if (str == "pingconfigs") {
+    Serial.println("Sending configs.");
+    udpMgr.sendUDP(loc);
+  }
+}
 
 void enableTimers(void) {
   timerMgr.add(updateOLEDInterval, updateOLED);
@@ -121,13 +126,14 @@ void setup() {
 
   configMgr.readLocation(&loc);
 
-  serverMgr.startConfigServer(configMgr, software_version, &loc);
+  serverMgr.startConfigServer(configMgr, udpMgr, software_version, &loc);
 
   enableTimers();
 
-  udpMgr.attach(locationSizeOnWire, []() {
+  udpMgr.attach(locationSizeOnWire, []() -> String {
     readUDPFloorRoomColor();
     digitalWrite(ledRed, !digitalRead(ledRed));
+    return "";
   });
 
   reportStatus();

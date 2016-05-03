@@ -23,36 +23,33 @@ void UdpMgr::reportUDPPacket(int packetSize) {
   Serial.printf(", port %d\n\r", _udp.remotePort());
 }
 
-void UdpMgr::readUDPOther(int packetSize) {
+// Allow printable characters only.
+String UdpMgr::readUDPOther(int packetSize) {
   if (!packetSize) {
-    return;
+    return "";
   }
-  Serial.printf("< [%d] Contents: ", packetSize);
-  if (packetSize == 1) {
-    uint8_t value = _udp.read();
-    Serial.println(value);
-  } else {
-    // Read the packet into packetBufffer.
-    _udp.read(_packetBuffer, UDP_TX_PACKET_MAX_SIZE);
-    Serial.printf("%d", _packetBuffer[0]);
-    for (int i = 1; i < packetSize; ++i) {
-      Serial.printf(", %d", _packetBuffer[i]);
+  int bytesRead = _udp.read(_packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+  for (int i = 0; i < bytesRead; ++i) {
+    char c = _packetBuffer[i];
+    if (c != 0 && (c < ' ' || c > '~')) {
+      Serial.printf(" bad char: %d: '%c'\n\r", c, c);
+      return "";
     }
-    Serial.println("");
   }
+  Serial.printf("< [read: %d] packet: '%s'\n\r", bytesRead, _packetBuffer);
+  return _packetBuffer;
 }
 
-void UdpMgr::receiveUDP(void) {
+String UdpMgr::receiveUDP(void) {
   int packetSize = _udp.parsePacket();
   if (!packetSize) {
-    return;
+    return "";
   }
   reportUDPPacket(packetSize);
   if (packetSize != _callbackOnSize) {
-    readUDPOther(packetSize);
-    return;
+    return readUDPOther(packetSize);;
   }
-  _callback();
+  return _callback();
 }
 
 void UdpMgr::sendUDP(const location_t& loc) {
@@ -78,4 +75,12 @@ void UdpMgr::sendUDP(const location_t& loc) {
   //     loc.floor, loc.room, a, b, c, d);
   Serial.printf("> sending values: floor=%u, room=%u, color=0x%08x\r\n",
                 loc.floor, loc.room, loc.color);
+}
+
+void UdpMgr::sendUDP(const String& msg) {
+  _udp.beginPacket(_ipBroadcast, _udpLocalPort);
+  strncpy(_packetBuffer, msg.c_str(), sizeof(_packetBuffer));
+  int bytesWritten = _udp.write(_packetBuffer, msg.length() + 1);
+  _udp.endPacket();
+  Serial.printf("> sendUDP wrote [%u]: %s\r\n", bytesWritten, msg.c_str());
 }
