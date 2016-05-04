@@ -25,7 +25,7 @@ unsigned int udplocalPort = 6484;
 const int flipBlueInterval = 200;      // ms
 const int updateOLEDInterval = 100;    // ms
 const int updatePIRInterval = 1000;    // ms
-const int receiveUDPInterval = 100;    // ms
+const int readSensorsInterval = 100;   // ms
 
 // LEDs
 const int ledBlue = 2;
@@ -63,10 +63,12 @@ void flipBlue(void) { digitalWrite(ledBlue, !digitalRead(ledBlue)); }
 
 // timer function
 void updatePIR(void) {
-  uint8_t val = digitalRead(pirInputPin);
-  if (val) {
+  uint8_t activity = digitalRead(pirInputPin);
+  if (activity) {
     displayMgr.writeToDisplay(loc.floor, loc.room, loc.color);
-    udpMgr.sendUDP(loc);
+    udpMgr.sendLocation(loc);
+    Serial.printf("> sending location: floor=%u, room=%u, color=0x%08x\r\n",
+                  loc.floor, loc.room, loc.color);
   }
 }
 
@@ -74,10 +76,12 @@ void updatePIR(void) {
 void updateOLED(void) { displayMgr.updateDisplay(); }
 
 // timer function
-void receiveNetworkSensors(void) { String str = udpMgr.receiveUDP();
+void receiveNetworkSensors(void) {
+  String str = udpMgr.read();
   if (str == "pingconfigs") {
-    Serial.println("Sending configs.");
-    udpMgr.sendUDP(loc);
+    Serial.printf("> sending configs: floor=%u, room=%u, color=0x%08x\r\n",
+                  loc.floor, loc.room, loc.color);
+    udpMgr.sendLocation(loc);
   }
 }
 
@@ -85,13 +89,12 @@ void enableTimers(void) {
   timerMgr.add(updateOLEDInterval, updateOLED);
   timerMgr.add(updatePIRInterval, updatePIR);
   timerMgr.add(flipBlueInterval, flipBlue);
-  timerMgr.add(receiveUDPInterval, receiveNetworkSensors);
+  timerMgr.add(readSensorsInterval, receiveNetworkSensors);
 }
 
 // Called on PIR detection.
-void readUDPFloorRoomColor(void) {
-  location_t l;
-  udpMgr.read(reinterpret_cast<byte*>(&l), locationSizeOnWire);
+void readUDPLocation(void) {
+  location_t l = udpMgr.readLocation();
   displayMgr.writeToDisplay(l.floor, l.room, l.color);
   Serial.printf("< Received floor=%u, room=%u, value=0x%08x\r\n", l.floor,
                 l.room, l.color);
@@ -131,7 +134,7 @@ void setup() {
   enableTimers();
 
   udpMgr.attach(locationSizeOnWire, []() -> String {
-    readUDPFloorRoomColor();
+    readUDPLocation();
     digitalWrite(ledRed, !digitalRead(ledRed));
     return "";
   });

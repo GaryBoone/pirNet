@@ -83,7 +83,10 @@ void ServerMgr::startConfigServer(const ConfigMgr& configMgr, UdpMgr& udpMgr,
   });
 
   _server->on("/pingconfigs", [this, &udpMgr]() {
-    udpMgr.sendUDP("pingconfigs");
+    String msg = "pingconfigs";
+    int bytesWritten = udpMgr.sendMessage(msg);
+    Serial.printf("> sendMessage wrote [%d]: %s\r\n", bytesWritten, msg.c_str());
+
     String content = "<!DOCTYPE HTML>\r\n<html>";
     content += "<p>All configs pinged.</p></html>";
     _server->send(200, "text/html", content);
