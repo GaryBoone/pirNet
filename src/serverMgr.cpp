@@ -9,12 +9,13 @@ void ServerMgr::startConfigServer(const ConfigMgr& configMgr, UdpMgr& udpMgr,
                                   const String software_version,
                                   location_t* loc) {
   _server->on("/", [this, software_version, loc]() {
-    String content = "<!DOCTYPE HTML>\r\n<html>ESP8266 at ";
+    String content = "<!DOCTYPE HTML>\r\n<html>pirNet Device Configuration";
     content += "<p>Software version: ";
     content += software_version;
     content += "<p>";
     content +=
-        "</p>Enter values from 0 to 255, inclusive: "
+        "</p>Floors may be 1 or 2."
+        "</p>Rooms may be 1 through 4."
         "</p><form method='get' action='setlocation'><label>Floor:&nbsp;"
         "</label><input name='floor' length=10 value=";
     content += String(loc->floor);
