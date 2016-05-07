@@ -9,6 +9,20 @@ The display allocates a 2x2 square of LEDs to a given sensor. You can configure 
 ## Image
 ![pirNet Assembled](imgs/pirNet.jpg)
 
+## Demonstrations
+
+The code in this project demonstrates several aspects of ESP8266 programming. The code is divided among several modules which can be used mostly independently. The modules show:
+
+* WiFi setup using the [WifiManager library](https://github.com/tzapu/WiFiManager).
+* Creating a unique version ID for each build using the compiler.
+* Reading and writing configurations to EEPROM using SPIFFS.
+* Writing to NeoPixel displays.
+* Over-the-air updates.
+* Creating web pages that submit forms.
+* Using internal timers.
+* Broadcasting data over the network to multiple devices using UDP.
+ 
+
 ## Hardware
 
 * [Adafruit Feather HUZZAH with ESP8266 WiFi](https://www.adafruit.com/products/2821)
@@ -24,11 +38,11 @@ Solder the PIR sensor to the NeoPixel as follows:
 * NeoPixel FeatherWing pin 12 --> PIR YELLOW wire, OUT on PIR board
 * NeoPixel FeatherWing pin GND --> PIR BLACK wire, GND on PIR board
 
-As you can see in the photo, I soldered the wires to the LED board and secured them with zipties to prevent stress on the solder joints.
+As you can see in the photo, I soldered the wires to the LED board and secured them with zip ties to prevent stress on the solder joints. The wires could equivalently be soldered to the Feather HUZZAH with ESP8266 board.
 
 ## Software
-* [PlatformIO](http://platformio.org/)
 * The software in this repository ([github.com/GaryBoone/pirNet](https://github.com/GaryBoone/pirNet))
+* [PlatformIO](http://platformio.org/)
 * The following libraries should be installed into PlatformIO:
   * [ 13  ] Adafruit-GFX
   * [ 28  ] Adafruit-NeoPixel
@@ -44,11 +58,11 @@ Attach the Huzzah to your computer with a USB cable. Install the software with
 
     $ pio run -t install
 
-You can run
+After that succeeds, you can run
 
     $ screen /dev/cu.SLAB_USBtoUART 115200
 
-while the device is connected via USB to see the serial output. Among the first lines, you'll see the IP address of the device:
+Hit the reset button on the device to reboot it. You'll see the serial output on your terminal. Among the first lines, you'll see the IP address of the device:
 
     OTA updates enabled
     Configuration server started.
@@ -57,6 +71,10 @@ while the device is connected via USB to see the serial output. Among the first 
     Status: Connected
     Mode: Station
     ESP8266 Location: floor=1, room=4, color=0x00f33f17
+
+Note the _Local IP_ address. That's the IP address your home network's router has assigned via DHCP to your device. 
+
+#### OTA Updates
 
 Once you know the IP address, you can update the code over the air (OTA):
 
@@ -82,7 +100,7 @@ _With your computer_, rejoin your normal network.
 
 #### Configuring pirNet devices
 
-Once the device is attached to your network, you can configure its location and color via a webpage. Just enter the device's IP address into your browser's address bar and hit return.
+Once the device is attached to your network, you can configure its location and color via a web page. Just enter the device's IP address into your browser's address bar and hit return.
 
 Example:
 
@@ -96,7 +114,9 @@ The configuration web page allows you to set the floor, room, and color of each 
 * __/__ to configure the device.
 * __/reset__ to reset the device.
 
+### TODO
 
+* pirNet needs a case, something 3D printed that would allow mounting on a wall and allow the PIR sensor to be rotated so it would point correctly no matter how the device is mounted.
 
-## License ##
+## License
 The code is available at github [GaryBoone/pirNet](https://github.com/GaryBoone/pirNet) under the [MIT license](http://opensource.org/licenses/mit-license.php).
