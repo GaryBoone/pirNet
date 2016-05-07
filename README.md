@@ -70,9 +70,13 @@ Because pirNet is intended to work with a number of devices, there's a Bash scri
 
 Run the script without arguments to see more details.
 
-#### Joining your network
+#### Joining the device to your network
 
-When you first power up the device, it will create a network called "PenumbralCogitation". _With your computer_, join that network using password "objectsmean". A captive portal web page will appear asking you to choose a local network. After entering credentials, hit the reset button on the pirNet device. If you have the pirNet device connected via USB and are using _screen_ as shown above, you'll see the device restart and join your network.
+When you first power up the device, it will create a network called "PenumbralCogitation". You use that network to talk to the device and tell it how to join your home network.
+
+_With your computer_, join the PenumbralCogitation network using password "objectsmean". [This password is only used when joining the network created by the ESP8266. You're in physical control of the device during this brief period. It can only be used to join the temporary network created by the device for setup, not your network. Change the password in the _src/wifiMgr.h_ if you like. The password isn't necessary if you set it to an empty string in _src/wifiMgr.h_.]
+
+A captive portal web page will appear asking you to choose a local network. After entering credentials, hit the reset button on the pirNet device. If you have the pirNet device connected via USB and are using _screen_ as shown above, you'll see the device restart and join your network.
 
 _With your computer_, rejoin your normal network. 
 
