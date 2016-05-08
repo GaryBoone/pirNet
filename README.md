@@ -6,10 +6,28 @@ pirNet is an ESP8266 microcontroller project that displays activity information 
 
 The display allocates a 2x2 square of LEDs to a given sensor. You can configure eight sensors, filling the 4 by 8 LED display. You set the floor, room, and color of each sensor through a web page. They're organized into two floors of four rooms each, but that's arbitrary: you have eight positions on the display.
 
-## Image
+![pirNet in action](imgs/action_200h_192c.gif)
+
+Each device is a Feather HUZZAH with ESP8266 with a NeoPixel 4x8 RGB LED FeatherWing attached via headers. The PIR sensor is attached only be wire so that it can be pointed as needed when mounted.
+
 ![pirNet Assembled](imgs/pirNet.jpg)
 
-## Demonstrations
+## Mounting the Devices
+
+Mount the devices so that the display is visible to most of the room. Orient the PIR sensor toward the main source of motion such as a doorway or hallway.
+
+#### Mounting height
+
+You can decide how high up your walls to to locate the pirNet devices, depending on who will be making the motion you wish the devices to show.
+
+Wall Height | Best for tracking
+-----|------------
+High | Drones, giraffes
+Medium | People
+Low | Cats, robots
+
+ 
+## Code Demonstrations
 
 The code in this project demonstrates several aspects of ESP8266 programming. The code is divided among several modules which can be used mostly independently. The modules show:
 
@@ -17,8 +35,8 @@ The code in this project demonstrates several aspects of ESP8266 programming. Th
 * Creating a unique version ID for each build using the compiler.
 * Reading and writing configurations to EEPROM using SPIFFS.
 * Writing to NeoPixel displays.
-* Over-the-air updates.
-* Creating web pages that submit forms.
+* Over-the-air updates. Super cool during development!
+* Creating web pages that display data from the ESP8266 and submit forms to configure the ESP8266.
 * Using internal timers.
 * Broadcasting data over the network to multiple devices using UDP.
  
@@ -107,6 +125,12 @@ Example:
     http://192.168.1.147
 
 The configuration web page allows you to set the floor, room, and color of each device. Floors may be 1 or 2. Rooms may be 1 through 4. Each room will be assigned a square of 4 pixels on the 4 by 8 LED display. 
+
+#### Display Layout
+
+The rooms/floors are mapped to the display as show here:
+
+![pirNet in action](imgs/pirNet_layout_sm2.png)
 
 
 #### Available Web Pages
