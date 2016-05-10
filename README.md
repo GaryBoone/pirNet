@@ -6,11 +6,19 @@ pirNet is an ESP8266 microcontroller project that displays activity information 
 
 The display allocates a 2x2 square of LEDs to a given sensor. You can configure eight sensors, filling the 4 by 8 LED display. You set the floor, room, and color of each sensor through a web page. They're organized into two floors of four rooms each, but that's arbitrary: you have eight positions on the display.
 
-![pirNet in action](imgs/action_200h_192c.gif)
+<br>
 
-Each device is a Feather HUZZAH with ESP8266 with a NeoPixel 4x8 RGB LED FeatherWing attached via headers. The PIR sensor is attached only be wire so that it can be pointed as needed when mounted.
+---
+![pirNet in action](imgs/action_200h_192c.gif)
+_Here, someone enters the Helicopter Base. The sensor there detects the motion and displays the information on the LEDs for Floor 2, Room 4. It instantly transmits the information to the other devices. They all display the motion, so no matter which room you're in, you see it. Next, there's motion in the upstairs bedroom. Again, it's diplayed on all of the devices in the square for Floor 2, Room 2. By, now the LED square for the Helicopter Base is starting to fade away._
+
+---
+
+<br>
 
 ![pirNet Assembled](imgs/pirNet.jpg)
+
+Each device is a Feather HUZZAH with ESP8266 with a NeoPixel 4x8 RGB LED FeatherWing attached via headers. The PIR sensor is attached only be wire so that it can be pointed as needed when mounted.
 
 ## Mounting the Devices
 
